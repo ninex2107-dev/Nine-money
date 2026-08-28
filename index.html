@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nine App</title>
+    <style>
+        /* ตั้งค่าพื้นฐาน (CSS) สีและรูปแบบ */
+        :root {
+            --bg-dark: #121824;
+            --bg-card: #1e2636;
+            --text-main: #ffffff;
+            --text-muted: #8892b0;
+            --primary: #f59e0b;
+            --primary-hover: #d97706;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            color: var(--text-main);
+        }
+
+        /* จำลองหน้าจอมือถือ */
+        #app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        /* ส่วนหัว (Header) */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a3441;
+        }
+        
+        .logo {
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* หน้าหลัก (Main Page) */
+        #main-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .list-item {
+            background-color: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 1px solid #2a3441;
+        }
+
+        .add-btn {
+            background: linear-gradient(to right, #f59e0b, #ea580c);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: auto;
+            font-weight: bold;
+        }
+
+        /* หน้าต่างเด้ง (Modals) */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-dark);
+            width: 90%;
+            max-height: 90%;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            border: 1px solid #2a3441;
+            box-sizing: border-box;
+        }
+
+        .modal-title {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        /* ฟอร์ม */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-muted); }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-card);
+            border: 1px solid #2a3441;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .form-group input[type="file"] { padding: 5px; }
+
+        /* หน้า PIN */
+        .pin-display {
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 15px;
+            margin: 20px 0;
+            height: 30px;
+        }
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .numpad button {
+            background-color: var(--bg-card);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .pin-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .pin-actions button {
+            background: none; border: none; color: var(--text-muted); padding: 10px; cursor: pointer;
+        }
+
+        /* หน้ารายละเอียด (Detail Page) */
+        #detail-page {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background-color: var(--bg-dark);
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            z-index: 5;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #2a3441;
+        }
+        
+        .back-btn {
+            background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 15px 0 0;
+        }
+
+        .id-badge {
+            margin: 0 auto;
+            border: 1px solid var(--primary);
+            padding: 5px 20px;
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .detail-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .detail-image-box {
+            width: 100px; height: 100px;
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #2a3441;
+        }
+        .detail-image-box img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .detail-text p { margin: 10px 0; color: var(--text-muted); }
+        .detail-text span { color: white; margin-left: 5px; }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="main-page">
+        <header>
+            <h1 class="logo">nine</h1>
+            <div>☰</div>
+        </header>
+        
+        <div id="list-container" style="flex: 1; margin-top: 20px;">
+            </div>
+
+        <button class="add-btn" onclick="openAddModal()">เพิ่ม+</button>
+    </div>
+
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">ลงประกาศใหม่</h2>
+            <form id="add-form">
+                <div class="form-group">
+                    <label>ชื่อคน *</label>
+                    <input type="text" id="input-name" placeholder="เช่น นาย สมมติ, นางสาว พิมพ์" required>
+                </div>
+                <div class="form-group">
+                    <label>รูปภาพ (ถ้ามี)</label>
+                    <input type="file" id="input-image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>วันที่ *</label>
+                    <input type="date" id="input-date" required>
+                </div>
+                <div class="form-group">
+                    <label>รายละเอียด</label>
+                    <textarea id="input-details" rows="3" placeholder="ระบุลักษณะเด่น..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>ช่องทางติดต่อ</label>
+                    <input type="text" id="input-contact" placeholder="เบอร์โทรศัพท์, IG...">
+                </div>
+                <button type="submit" class="add-btn" style="width: 100%; margin-top: 10px;">ลงประกาศ</button>
+                <button type="button" style="width: 100%; margin-top: 10px; background: none; border: none; color: #8892b0; cursor: pointer;" onclick="closeAddModal()">ยกเลิก</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="pin-modal" class="modal">
+        <div class="modal-content" style="background-color: var(--bg-dark);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin-bottom: 5px;">ใส่รหัสผ่าน</h2>
+                <span style="color: var(--text-muted); font-size: 14px;">( GitHub )</span>
+            </div>
+            
+            <div class="pin-display" id="pin-display">****</div>
+            
+            <div class="numpad">
+                <button onclick="pressPin('1')">1</button>
+                <button onclick="pressPin('2')">2</button>
+                <button onclick="pressPin('3')">3</button>
+                <button onclick="pressPin('4')">4</button>
+                <button onclick="pressPin('5')">5</button>
+                <button onclick="pressPin('6')">6</button>
+                <button onclick="pressPin('7')">7</button>
+                <button onclick="pressPin('8')">8</button>
+                <button onclick="pressPin('9')">9</button>
+                <div></div>
+                <button onclick="pressPin('0')">0</button>
+                <button onclick="deletePin()">⌫</button>
+            </div>
+            
+            <div class="pin-actions">
+                <button onclick="confirmPin()">ยืนยัน</button>
+                <button onclick="cancelPin()">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detail-page">
+        <div class="detail-header">
+            <button class="back-btn" onclick="closeDetails()">←</button>
+            <div class="id-badge" id="detail-badge-id">0</div>
+            <div style="width: 24px;"></div> </div>
+        <div class="detail-content">
+            <h2 style="margin-top: 0;">ชื่อคน: <span id="detail-name"></span></h2>
+            
+            <div class="detail-image-box">
+                <img id="detail-image" src="" alt="รูปภาพ" style="display: none;">
+                <span id="detail-no-image" style="color: var(--text-muted); font-size: 12px;">ไม่มีรูปภาพ</span>
+            </div>
+
+            <div class="detail-text">
+                <p>วันที่: <span id="detail-date"></span></p>
+                <p>รายละเอียด: <span id="detail-desc"></span></p>
+                <p>ช่องทางติดต่อ: <span id="detail-contact"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ส่วนประมวลผลการทำงาน (JavaScript) ---
+
+    // ข้อมูลจำลองเริ่มต้น
+    let db = [
+        { id: 7, name: "อารยา", date: "2026-08-28", details: "ตัวอย่างรายละเอียด", contact: "080-xxx-xxxx", imageSrc: null }
+    ];
+    
+    let currentIdCounter = 8; // ตัวรันเลข ID ลำดับถัดไป
+    let tempFormData = null; // เก็บข้อมูลชั่วคราวก่อนใส่รหัส PIN
+    let currentPin = ""; // เก็บค่า PIN ที่กำลังกด
+
+    // ฟังก์ชันวาดรายการหน้าแรก
+    function renderList() {
+        const container = document.getElementById('list-container');
+        container.innerHTML = "";
+        
+        db.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+            div.innerText = `${item.name} [${item.id}]`;
+            div.onclick = () => openDetails(index);
+            container.appendChild(div);
+        });
+    }
+
+    // --- การจัดการ Form เพิ่มประกาศ ---
+    function openAddModal() {
+        document.getElementById('add-form').reset();
+        document.getElementById('add-modal').style.display = 'flex';
+    }
+
+    function closeAddModal() {
+        document.getElementById('add-modal').style.display = 'none';
+    }
+
+    // เมื่อกดปุ่ม 'ลงประกาศ' ในฟอร์ม
+    document.getElementById('add-form').addEventListener('submit', function(e) {
+        e.preventDefault(); // ป้องกันการรีเฟรชหน้า
+
+        // ดึงข้อมูลจากฟอร์ม
+        const name = document.getElementById('input-name').value;
+        const date = document.getElementById('input-date').value;
+        const details = document.getElementById('input-details').value;
+        const contact = document.getElementById('input-contact').value;
+        const imageFile = document.getElementById('input-image').files[0];
+
+        // เตรียมข้อมูล (ใช้ FileReader เพื่อแปลงรูปภาพเพื่อแสดงผลชั่วคราว)
+        tempFormData = {
+            id: currentIdCounter,
+            name: name,
+            date: date,
+            details: details,
+            contact: contact,
+            imageSrc: null
+        };
+
+        if (imageFile) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                tempFormData.imageSrc = event.target.result;
+            };
+            reader.readAsDataURL(imageFile);
+        }
+
+        // ปิดหน้าฟอร์ม และเปิดหน้า PIN
+        closeAddModal();
+        openPinModal();
+    });
+
+    // --- การจัดการหน้า PIN ---
+    function openPinModal() {
+        currentPin = "";
+        updatePinDisplay();
+        document.getElementById('pin-modal').style.display = 'flex';
+    }
+
+    function cancelPin() {
+        document.getElementById('pin-modal').style.display = 'none';
+        tempFormData = null; // ยกเลิกข้อมูลที่กรอกมา
+    }
+
+    function pressPin(num) {
+        if (currentPin.length < 4) {
+            currentPin += num;
+            updatePinDisplay();
+        }
+    }
+
+    function deletePin() {
+        if (currentPin.length > 0) {
+            currentPin = currentPin.slice(0, -1);
+            updatePinDisplay();
+        }
+    }
+
+    function updatePinDisplay() {
+        let displayStr = "";
+        for (let i = 0; i < 4; i++) {
+            if (i < currentPin.length) displayStr += "*";
+            else displayStr += "-";
+        }
+        document.getElementById('pin-display').innerText = displayStr;
+    }
+
+    function confirmPin() {
+        if (currentPin === "1234") {
+            // รหัสถูกต้อง เพิ่มข้อมูลลงในระบบ
+            db.push(tempFormData);
+            currentIdCounter++;
+            renderList();
+            
+            document.getElementById('pin-modal').style.display = 'none';
+            alert("เพิ่มประกาศสำเร็จ!");
+        } else {
+            alert("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่ (รหัสคือ 1234)");
+            currentPin = "";
+            updatePinDisplay();
+        }
+    }
+
+    // --- การจัดการหน้า รายละเอียด (Details) ---
+    function openDetails(index) {
+        const item = db[index];
+        
+        document.getElementById('detail-badge-id').innerText = item.id;
+        document.getElementById('detail-name').innerText = item.name;
+        document.getElementById('detail-date').innerText = item.date;
+        document.getElementById('detail-desc').innerText = item.details || "-";
+        document.getElementById('detail-contact').innerText = item.contact || "-";
+
+        const imgElement = document.getElementById('detail-image');
+        const noImgElement = document.getElementById('detail-no-image');
+
+        if (item.imageSrc) {
+            imgElement.src = item.imageSrc;
+            imgElement.style.display = 'block';
+            noImgElement.style.display = 'none';
+        } else {
+            imgElement.style.display = 'none';
+            noImgElement.style.display = 'block';
+        }
+
+        document.getElementById('detail-page').style.display = 'flex';
+    }
+
+    function closeDetails() {
+        document.getElementById('detail-page').style.display = 'none';
+    }
+
+    // วาดหน้าจอครั้งแรก
+    renderList();
+
+</script>
+</body>
+</html>
